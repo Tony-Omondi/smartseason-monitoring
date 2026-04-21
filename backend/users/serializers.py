@@ -4,17 +4,27 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
 
-# 1. Standard User Serializer
+
 class UserSerializer(serializers.ModelSerializer):
+    """
+    Used for listing users and as the base for user creation.
+    Password is write-only — never returned in responses.
+    """
+    password = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role']
+        fields = ['id', 'username', 'email', 'role', 'password']
 
-# 2. Custom Login Serializer to include the Role in the token
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Extends the default JWT login response to include `username` and `role`.
+    The frontend reads `role` on login to redirect to the correct dashboard
+    without needing a second /me/ API call.
+    """
     def validate(self, attrs):
         data = super().validate(attrs)
-        # Add custom data to the JSON response
         data['username'] = self.user.username
-        data['role'] = self.user.role
+        data['role']     = self.user.role
         return data
