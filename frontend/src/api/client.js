@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// Use a relative path. The browser will automatically prepend the current domain
+// (e.g., https://nitotoken.cyou/api/ or http://localhost/api/)
+const API_BASE_URL = '/api/';
+
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8000/api/',
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -25,7 +29,8 @@ apiClient.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const { data } = await axios.post('http://localhost:8000/api/auth/token/refresh/', { refresh });
+          // UPDATE: Use the relative API_BASE_URL here instead of localhost
+          const { data } = await axios.post(`${API_BASE_URL}auth/token/refresh/`, { refresh });
           localStorage.setItem('access_token', data.access);
           original.headers.Authorization = `Bearer ${data.access}`;
           return apiClient(original);
@@ -34,7 +39,7 @@ apiClient.interceptors.response.use(
         }
       }
       localStorage.clear();
-      window.location.href = '/';
+      window.location.href = '/login'; // Redirects securely to your login page
     }
     return Promise.reject(error);
   }
